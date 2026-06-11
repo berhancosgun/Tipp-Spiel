@@ -10,6 +10,15 @@ from scripts.ranking_anzeige import (
     calculate_points_for_player, get_all_player_rankings,
     save_result
 )
+
+def safe_int(value, default=0):
+    try:
+        if value is None or value == '' or (isinstance(value, float) and pd.isna(value)):
+            return default
+        return int(value)
+    except (ValueError, TypeError):
+        return default
+
 # =========================================================
 # ðŸ” PASSWORT-SCHUTZ
 # =========================================================

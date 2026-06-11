@@ -318,8 +318,9 @@ with tab1:
         current_heim      = st.session_state.player_tips.loc[game_id, HEIMTEAM_COL    + '_Tipp']
         current_auswaerts = st.session_state.player_tips.loc[game_id, AUSWAERTSTE_COL + '_Tipp']
 
-        default_heim      = int(current_heim)      if pd.notna(current_heim)      else 0
-        default_auswaerts = int(current_auswaerts) if pd.notna(current_auswaerts) else 0
+        # NEU:
+        default_heim      = int(current_heim)      if pd.notna(current_heim) and current_heim != "" else 0
+        default_auswaerts = int(current_auswaerts) if pd.notna(current_auswaerts) and current_auswaerts != "" else 0
 
         if not ergebnis_vorhanden:
             st.markdown("#### 🎯 Dein Tipp:")

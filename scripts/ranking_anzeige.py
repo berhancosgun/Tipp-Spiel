@@ -4,6 +4,7 @@ import pandas as pd
 import os
 import streamlit as st
 import gspread
+import time  # ← NEU
 from google.oauth2.service_account import Credentials
 
 # =========================================================
@@ -11,12 +12,11 @@ from google.oauth2.service_account import Credentials
 # =========================================================
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_DIR = os.path.join(BASE_DIR, 'data')
-TIPPS_DIR = os.path.join(BASE_DIR, 'tipps')  # nicht mehr aktiv genutzt
+TIPPS_DIR = os.path.join(BASE_DIR, 'tipps')
 
 SPIELE_DATEI = os.path.join(DATA_DIR, 'spiele.csv')
-ERGEBNISSE_DATEI = os.path.join(DATA_DIR, 'ergebnisse.csv')  # Fallback
+ERGEBNISSE_DATEI = os.path.join(DATA_DIR, 'ergebnisse.csv')
 
-# Spaltennamen
 SPIELID_COL        = 'Spiel_ID'
 HEIMTEAM_COL       = 'Heimteam'
 AUSWAERTSTE_COL    = 'Auswärtsteam'
@@ -33,7 +33,6 @@ SCOPES = [
 
 @st.cache_resource
 def get_google_sheet():
-    """Verbindet mit Google Sheets und gibt das Spreadsheet zurück."""
     creds = Credentials.from_service_account_info(
         st.secrets["gcp_service_account"],
         scopes=SCOPES
@@ -43,21 +42,35 @@ def get_google_sheet():
     return sheet
 
 def get_worksheet(tab_name: str):
-    """Gibt ein bestimmtes Tabellenblatt zurück. Erstellt es falls nötig."""
     sheet = get_google_sheet()
     try:
         return sheet.worksheet(tab_name)
     except gspread.exceptions.WorksheetNotFound:
-        # Tabellenblatt automatisch erstellen
         ws = sheet.add_worksheet(title=tab_name, rows=500, cols=20)
         return ws
 
 # =========================================================
-# 📥 Spiele laden (weiterhin aus lokaler CSV)
+# 🔁 Hilfsfunktion: API Call mit Retry bei 429
+# =========================================================
+def api_call_with_retry(func, *args, retries=5, wait=15, **kwargs):
+    """Führt eine API-Funktion aus und wiederholt bei 429-Fehler."""
+    for attempt in range(retries):
+        try:
+            return func(*args, **kwargs)
+        except Exception as e:
+            if "429" in str(e):
+                print(f"⚠️ Rate Limit! Warte {wait}s... (Versuch {attempt+1}/{retries})")
+                time.sleep(wait)
+                wait *= 2  # Exponential Backoff
+            else:
+                raise e
+    raise Exception("❌ Google Sheets API Limit dauerhaft überschritten. Bitte später versuchen.")
+
+# =========================================================
+# 📥 Spiele laden
 # =========================================================
 @st.cache_data(ttl=30)
 def load_games():
-    """Lädt die Spieldaten aus der spiele.csv."""
     if not os.path.exists(SPIELE_DATEI):
         return pd.DataFrame(
             columns=[SPIELID_COL, HEIMTEAM_COL, AUSWAERTSTE_COL]
@@ -69,10 +82,9 @@ def load_games():
 # 📥 Ergebnisse laden (Google Sheets)
 # =========================================================
 def load_results():
-    """Lädt die Spielergebnisse aus Google Sheets."""
     try:
         ws = get_worksheet("Ergebnisse")
-        data = ws.get_all_records()
+        data = api_call_with_retry(ws.get_all_records)
         if not data:
             return pd.DataFrame(
                 columns=[SPIELID_COL, HEIM_TORE_COL, AUSWAERTS_TORE_COL]
@@ -90,27 +102,36 @@ def load_results():
         ).set_index(SPIELID_COL)
 
 # =========================================================
-# 📥 Spieler-Tipps laden (Google Sheets)
+# 📥 ALLE Tipps auf einmal laden ← NEU (1 API Call statt N)
 # =========================================================
-def load_player_tips(player_name: str):
-    """Lädt die Tipps eines Spielers aus Google Sheets."""
+@st.cache_data(ttl=60)
+def load_all_tips_from_sheet():
+    """Lädt ALLE Tipps in einem einzigen API Call."""
     try:
         ws = get_worksheet("Tipps")
-        data = ws.get_all_records()
+        data = api_call_with_retry(ws.get_all_records)
         if not data:
             return pd.DataFrame()
-        df = pd.DataFrame(data)
-        if 'Spieler' not in df.columns:
+        return pd.DataFrame(data)
+    except Exception as e:
+        print(f"Fehler beim Laden aller Tipps: {e}")
+        return pd.DataFrame()
+
+# =========================================================
+# 📥 Spieler-Tipps laden (aus gecachtem DataFrame)
+# =========================================================
+def load_player_tips(player_name: str):
+    """Lädt die Tipps eines Spielers — aus dem gecachten Gesamt-DataFrame."""
+    try:
+        df = load_all_tips_from_sheet()  # ← Kein neuer API Call!
+        if df.empty or 'Spieler' not in df.columns:
             return pd.DataFrame()
 
-        # Nur Zeilen dieses Spielers
         player_df = df[df['Spieler'].str.lower() == player_name.lower()].copy()
         if player_df.empty:
             return pd.DataFrame()
 
-        player_df[SPIELID_COL] = pd.to_numeric(
-            player_df[SPIELID_COL], errors='coerce'
-        )
+        player_df[SPIELID_COL] = pd.to_numeric(player_df[SPIELID_COL], errors='coerce')
         player_df = player_df.dropna(subset=[SPIELID_COL])
         player_df[SPIELID_COL] = player_df[SPIELID_COL].astype(int)
         player_df = player_df.set_index(SPIELID_COL)
@@ -128,31 +149,36 @@ def save_player_tips_to_sheet(player_name: str, tips_df: pd.DataFrame):
     """Speichert die Tipps eines Spielers in Google Sheets."""
     try:
         ws = get_worksheet("Tipps")
-        data = ws.get_all_records()
+        data = api_call_with_retry(ws.get_all_records)  # ← Mit Retry
         df = pd.DataFrame(data) if data else pd.DataFrame()
 
-        # Vorbereitung: tips_df mit Spieler-Spalte
         new_df = tips_df.copy()
         if new_df.index.name != SPIELID_COL:
             if SPIELID_COL in new_df.columns:
                 new_df = new_df.set_index(SPIELID_COL)
         new_df = new_df.reset_index()
         new_df.insert(0, 'Spieler', player_name)
-        new_df = new_df.fillna("")  # ← NA Werte entfernen!
+        new_df = new_df.fillna("")
 
         if df.empty:
             ws.clear()
-            ws.update(
+            api_call_with_retry(
+                ws.update,
                 [new_df.columns.tolist()] + new_df.values.tolist()
             )
         else:
             df_others = df[df['Spieler'].str.lower() != player_name.lower()]
             combined = pd.concat([df_others, new_df], ignore_index=True)
-            combined = combined.fillna("")  # ← NA Werte entfernen!
+            combined = combined.fillna("")
             ws.clear()
-            ws.update(
+            api_call_with_retry(
+                ws.update,
                 [combined.columns.tolist()] + combined.values.tolist()
             )
+
+        # Cache leeren nach dem Speichern ← NEU
+        load_all_tips_from_sheet.clear()
+
     except Exception as e:
         raise Exception(f"Fehler beim Speichern der Tipps: {e}")
 
@@ -160,10 +186,9 @@ def save_player_tips_to_sheet(player_name: str, tips_df: pd.DataFrame):
 # 💾 Ergebnis speichern (Google Sheets)
 # =========================================================
 def save_result(spiel_id: int, heim_tore: int, auswaerts_tore: int):
-    """Speichert ein Spielergebnis in Google Sheets."""
     try:
         ws = get_worksheet("Ergebnisse")
-        data = ws.get_all_records()
+        data = api_call_with_retry(ws.get_all_records)
         df = pd.DataFrame(data) if data else pd.DataFrame()
 
         if df.empty:
@@ -173,7 +198,10 @@ def save_result(spiel_id: int, heim_tore: int, auswaerts_tore: int):
                 AUSWAERTS_TORE_COL: auswaerts_tore
             }])
             ws.clear()
-            ws.update([new_df.columns.tolist()] + new_df.values.tolist())
+            api_call_with_retry(
+                ws.update,
+                [new_df.columns.tolist()] + new_df.values.tolist()
+            )
         else:
             df[SPIELID_COL] = pd.to_numeric(df[SPIELID_COL], errors='coerce')
             if spiel_id in df[SPIELID_COL].values:
@@ -188,16 +216,18 @@ def save_result(spiel_id: int, heim_tore: int, auswaerts_tore: int):
                 df = pd.concat([df, new_row], ignore_index=True)
 
             ws.clear()
-            ws.update([df.columns.tolist()] + df.values.tolist())
+            api_call_with_retry(
+                ws.update,
+                [df.columns.tolist()] + df.values.tolist()
+            )
 
     except Exception as e:
         raise Exception(f"Fehler beim Speichern des Ergebnisses: {e}")
 
 # =========================================================
-# 🧮 Punkte berechnen (unverändert)
+# 🧮 Punkte berechnen
 # =========================================================
 def calculate_points_for_player(player_tips, all_games, results):
-    """Berechnet die Punkte für einen Spieler."""
     points = 0
     for game_id, tip in player_tips.iterrows():
         if game_id not in results.index:
@@ -226,21 +256,15 @@ def calculate_points_for_player(player_tips, all_games, results):
     return points
 
 # =========================================================
-# 🏆 Ranking berechnen (Google Sheets)
+# 🏆 Ranking berechnen ← OPTIMIERT (nur 1 API Call!)
 # =========================================================
 def get_all_player_rankings():
-    """Berechnet das Ranking für alle Spieler aus Google Sheets."""
     all_games = load_games()
     results   = load_results()
 
     try:
-        ws   = get_worksheet("Tipps")
-        data = ws.get_all_records()
-        if not data:
-            return pd.DataFrame(columns=['Rang', 'Spieler', 'Punkte'])
-
-        df = pd.DataFrame(data)
-        if 'Spieler' not in df.columns:
+        df = load_all_tips_from_sheet()  # ← 1 Call für alle!
+        if df.empty or 'Spieler' not in df.columns:
             return pd.DataFrame(columns=['Rang', 'Spieler', 'Punkte'])
 
         player_names = df['Spieler'].str.lower().unique()
@@ -249,7 +273,7 @@ def get_all_player_rankings():
 
     player_points = {}
     for player in player_names:
-        tips   = load_player_tips(player)
+        tips = load_player_tips(player)  # ← Kein API Call mehr!
         if not tips.empty:
             pts = calculate_points_for_player(tips, all_games, results)
             player_points[player.capitalize()] = pts

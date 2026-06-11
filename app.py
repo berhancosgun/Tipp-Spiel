@@ -403,6 +403,23 @@ with tab2:
 
     if st.button("🔄 Ranking aktualisieren", key="refresh_ranking"):
         st.rerun()
+    
+        # ← NEU: DEBUG (temporär!)
+    with st.expander("🐛 Debug Info"):
+        try:
+            ranking_df_debug = get_all_player_rankings()
+            st.write("**Ranking DataFrame:**", ranking_df_debug)
+
+            from scripts.ranking_anzeige import load_all_tips_from_sheet, load_games, load_results
+            all_games = load_games()
+            results   = load_results()
+            df        = load_all_tips_from_sheet()
+
+            st.write("**Spiele:**", all_games)
+            st.write("**Ergebnisse:**", results)
+            st.write("**Alle Tipps:**", df)
+        except Exception as e:
+            st.error(f"Debug Fehler: {e}")
 
     try:
         ranking_df = get_all_player_rankings()

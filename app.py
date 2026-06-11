@@ -55,21 +55,16 @@ if not check_password():
 def get_flag(team_name):
     return ""
 
-def save_player_tips(player_name, tips_df, tips_dir=TIPPS_DIR):
-    os.makedirs(tips_dir, exist_ok=True)
-    file_path = os.path.join(tips_dir, f'{player_name.lower()}.csv')
-    try:
-        df_to_save = tips_df.copy()
-        if df_to_save.index.name != SPIELID_COL:
-            if SPIELID_COL in df_to_save.columns:
-                df_to_save = df_to_save.set_index(SPIELID_COL)
-        df_to_save.to_csv(file_path, index=True)
-    except Exception as e:
-        st.error(f"Fehler beim Speichern: {e}")
+def save_player_tips(player_name, tips_df, tips_dir=None):
+    """Speichert Tipps in Google Sheets."""
+    from scripts.ranking_anzeige import save_player_tips_to_sheet
+    save_player_tips_to_sheet(player_name, tips_df)
 
-def player_file_exists(player_name, tips_dir=TIPPS_DIR):
-    file_path = os.path.join(tips_dir, f'{player_name.lower()}.csv')
-    return os.path.exists(file_path)
+def player_file_exists(player_name, tips_dir=None):
+    """Prüft ob ein Spieler bereits Tipps in Google Sheets hat."""
+    from scripts.ranking_anzeige import load_player_tips
+    tips = load_player_tips(player_name)
+    return not tips.empty
 
 # =========================================================
 # 🎨 SEITEN-KONFIGURATION

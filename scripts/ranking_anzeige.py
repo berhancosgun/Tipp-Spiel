@@ -70,7 +70,7 @@ def load_games():
 def load_results():
     """Lädt die Spielergebnisse aus Google Sheets."""
     try:
-        ws = get_worksheet("ergebnisse")
+        ws = get_worksheet("Ergebnisse")
         data = ws.get_all_records()
         if not data:
             return pd.DataFrame(
@@ -94,7 +94,7 @@ def load_results():
 def load_player_tips(player_name: str):
     """Lädt die Tipps eines Spielers aus Google Sheets."""
     try:
-        ws = get_worksheet("tipps")
+        ws = get_worksheet("Tipps")
         data = ws.get_all_records()
         if not data:
             return pd.DataFrame()
@@ -126,7 +126,7 @@ def load_player_tips(player_name: str):
 def save_player_tips_to_sheet(player_name: str, tips_df: pd.DataFrame):
     """Speichert die Tipps eines Spielers in Google Sheets."""
     try:
-        ws = get_worksheet("tipps")
+        ws = get_worksheet("Tipps")
         data = ws.get_all_records()
         df = pd.DataFrame(data) if data else pd.DataFrame()
 
@@ -161,7 +161,7 @@ def save_player_tips_to_sheet(player_name: str, tips_df: pd.DataFrame):
 def save_result(spiel_id: int, heim_tore: int, auswaerts_tore: int):
     """Speichert ein Spielergebnis in Google Sheets."""
     try:
-        ws = get_worksheet("ergebnisse")
+        ws = get_worksheet("Ergebnisse")
         data = ws.get_all_records()
         df = pd.DataFrame(data) if data else pd.DataFrame()
 
@@ -233,7 +233,7 @@ def get_all_player_rankings():
     results   = load_results()
 
     try:
-        ws   = get_worksheet("tipps")
+        ws   = get_worksheet("Tipps")
         data = ws.get_all_records()
         if not data:
             return pd.DataFrame(columns=['Rang', 'Spieler', 'Punkte'])

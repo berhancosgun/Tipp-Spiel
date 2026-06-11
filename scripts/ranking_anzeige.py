@@ -121,9 +121,8 @@ def load_all_tips_from_sheet():
 # 📥 Spieler-Tipps laden (aus gecachtem DataFrame)
 # =========================================================
 def load_player_tips(player_name: str):
-    """Lädt die Tipps eines Spielers — aus dem gecachten Gesamt-DataFrame."""
     try:
-        df = load_all_tips_from_sheet()  # ← Kein neuer API Call!
+        df = load_all_tips_from_sheet()
         if df.empty or 'Spieler' not in df.columns:
             return pd.DataFrame()
 
@@ -131,6 +130,8 @@ def load_player_tips(player_name: str):
         if player_df.empty:
             return pd.DataFrame()
 
+        # ← NEU: Leere Spiel_ID Zeilen entfernen
+        player_df = player_df[player_df[SPIELID_COL].astype(str).str.strip() != '']
         player_df[SPIELID_COL] = pd.to_numeric(player_df[SPIELID_COL], errors='coerce')
         player_df = player_df.dropna(subset=[SPIELID_COL])
         player_df[SPIELID_COL] = player_df[SPIELID_COL].astype(int)
@@ -256,27 +257,36 @@ def calculate_points_for_player(player_tips, all_games, results):
     return points
 
 # =========================================================
-# 🏆 Ranking berechnen ← OPTIMIERT (nur 1 API Call!)
+# 🏆 Ranking berechnen ← FIXED
 # =========================================================
 def get_all_player_rankings():
     all_games = load_games()
     results   = load_results()
 
     try:
-        df = load_all_tips_from_sheet()  # ← 1 Call für alle!
+        df = load_all_tips_from_sheet()
         if df.empty or 'Spieler' not in df.columns:
             return pd.DataFrame(columns=['Rang', 'Spieler', 'Punkte'])
 
+        # ← NEU: Leere Spiel_ID Zeilen entfernen
+        df = df[df[SPIELID_COL].astype(str).str.strip() != '']
+        df = df.dropna(subset=[SPIELID_COL])
+
         player_names = df['Spieler'].str.lower().unique()
-    except Exception:
+    except Exception as e:
+        print(f"Fehler beim Laden des Rankings: {e}")
         return pd.DataFrame(columns=['Rang', 'Spieler', 'Punkte'])
 
     player_points = {}
     for player in player_names:
-        tips = load_player_tips(player)  # ← Kein API Call mehr!
-        if not tips.empty:
-            pts = calculate_points_for_player(tips, all_games, results)
-            player_points[player.capitalize()] = pts
+        try:
+            tips = load_player_tips(player)
+            if not tips.empty:
+                pts = calculate_points_for_player(tips, all_games, results)
+                player_points[player.capitalize()] = pts
+        except Exception as e:
+            print(f"Fehler bei Spieler {player}: {e}")
+            continue  # ← Spieler überspringen, nicht abstürzen!
 
     if not player_points:
         return pd.DataFrame(columns=['Rang', 'Spieler', 'Punkte'])

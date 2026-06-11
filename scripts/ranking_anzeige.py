@@ -137,17 +137,17 @@ def save_player_tips_to_sheet(player_name: str, tips_df: pd.DataFrame):
                 new_df = new_df.set_index(SPIELID_COL)
         new_df = new_df.reset_index()
         new_df.insert(0, 'Spieler', player_name)
+        new_df = new_df.fillna("")  # ← NA Werte entfernen!
 
         if df.empty:
-            # Komplett neu schreiben
             ws.clear()
             ws.update(
                 [new_df.columns.tolist()] + new_df.values.tolist()
             )
         else:
-            # Bestehende Zeilen dieses Spielers entfernen
             df_others = df[df['Spieler'].str.lower() != player_name.lower()]
             combined = pd.concat([df_others, new_df], ignore_index=True)
+            combined = combined.fillna("")  # ← NA Werte entfernen!
             ws.clear()
             ws.update(
                 [combined.columns.tolist()] + combined.values.tolist()

@@ -292,10 +292,12 @@ with tab1:
         auswaerts = game[AUSWAERTSTE_COL]
 
         # ✅ NEU: Status aus Ergebnisse Sheet holen
+        # ✅ FIX: Nur als "Ergebnis vorhanden" zählen wenn Status = 'fertig'
         status = results.loc[game_id].get('Status', 'offen') if game_id in results.index else 'offen'
 
         ergebnis_vorhanden = (
-            game_id in results.index
+            status == 'fertig'
+            and game_id in results.index
             and pd.notna(results.loc[game_id, HEIM_TORE_COL])
             and pd.notna(results.loc[game_id, AUSWAERTS_TORE_COL])
         )

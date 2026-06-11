@@ -214,7 +214,7 @@ else:
         "📊  Ergebnisse"
     ])
 
-# =========================================================
+## =========================================================
 # TAB 1: TIPPABGABE
 # =========================================================
 with tab1:
@@ -291,6 +291,9 @@ with tab1:
         heim      = game[HEIMTEAM_COL]
         auswaerts = game[AUSWAERTSTE_COL]
 
+        # ✅ NEU: Status aus Ergebnisse Sheet holen
+        status = results.loc[game_id].get('Status', 'offen') if game_id in results.index else 'offen'
+
         ergebnis_vorhanden = (
             game_id in results.index
             and pd.notna(results.loc[game_id, HEIM_TORE_COL])
@@ -329,7 +332,9 @@ with tab1:
         default_heim      = int(current_heim)      if pd.notna(current_heim) and current_heim != "" else 0
         default_auswaerts = int(current_auswaerts) if pd.notna(current_auswaerts) and current_auswaerts != "" else 0
 
-        if not ergebnis_vorhanden:
+        # ✅ NEU: Status-Logik für Tipp-Formular
+        if not ergebnis_vorhanden and status != 'fertig':
+            # Spiel offen → Tipp erlaubt
             st.markdown("#### 🎯 Dein Tipp:")
             col1, col_vs, col2 = st.columns([2, 1, 2])
             with col1:
@@ -362,7 +367,22 @@ with tab1:
                     st.success("🏆 Alle Tipps gespeichert! Viel Glück! 🤞")
                     st.session_state.logged_in = False
                     st.rerun()
+
+        elif status == 'fertig':
+            # 🔒 Spiel beendet → kein Tipp mehr möglich
+            st.markdown(f"""
+            <div style='text-align:center; padding:15px; background:#1a1a2e; border-radius:10px; margin:10px 0;'>
+                <span style='color:#ff4444; font-size:22px;'>🔒 Spiel beendet!</span><br>
+                <span style='color:#c8c8e8;'>Kein Tipp mehr möglich.</span><br><br>
+                <span style='color:#c8c8e8;'>Dein Tipp war: </span>
+                <span style='color:#FFD700; font-size:22px; font-weight:bold;'>
+                    {default_heim} : {default_auswaerts}
+                </span>
+            </div>
+            """, unsafe_allow_html=True)
+
         else:
+            # Tipp bereits abgegeben
             st.markdown(f"""
             <div style='text-align:center; padding:10px;'>
                 <span style='color:#c8c8e8;'>Dein Tipp war: </span>

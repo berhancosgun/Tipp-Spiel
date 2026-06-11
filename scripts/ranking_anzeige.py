@@ -235,14 +235,10 @@ def calculate_points_for_player(player_tips, all_games, results):
             continue
         actual_result = results.loc[game_id]
 
-        # ← NEU: Spiele ohne echtes Ergebnis überspringen!
-        actual_heim      = actual_result[HEIM_TORE_COL]
-        actual_auswaerts = actual_result[AUSWAERTS_TORE_COL]
-        
-        if pd.isna(actual_heim) or pd.isna(actual_auswaerts):
+        # ← NEU: Nur "fertige" Spiele werten!
+        status = actual_result.get('Status', 'offen')
+        if status != 'fertig':
             continue
-        if actual_heim == 0 and actual_auswaerts == 0 and game_id != 1:
-            continue  # 0:0 = noch kein Ergebnis (außer Spiel 1 das wirklich 3:1 war)
 
         if pd.isna(tip.get(HEIMTEAM_COL + '_Tipp')) or \
            pd.isna(tip.get(AUSWAERTSTE_COL + '_Tipp')):
@@ -250,8 +246,8 @@ def calculate_points_for_player(player_tips, all_games, results):
 
         tipped_heim      = int(tip[HEIMTEAM_COL     + '_Tipp'])
         tipped_auswaerts = int(tip[AUSWAERTSTE_COL  + '_Tipp'])
-        actual_heim      = int(actual_heim)
-        actual_auswaerts = int(actual_auswaerts)
+        actual_heim      = int(actual_result[HEIM_TORE_COL])
+        actual_auswaerts = int(actual_result[AUSWAERTS_TORE_COL])
 
         if tipped_heim == actual_heim and tipped_auswaerts == actual_auswaerts:
             points += 4

@@ -87,18 +87,23 @@ def load_results():
         data = api_call_with_retry(ws.get_all_records)
         if not data:
             return pd.DataFrame(
-                columns=[SPIELID_COL, HEIM_TORE_COL, AUSWAERTS_TORE_COL]
+                columns=[SPIELID_COL, HEIM_TORE_COL, AUSWAERTS_TORE_COL, "Status"]
             ).set_index(SPIELID_COL)
         df = pd.DataFrame(data)
         df[SPIELID_COL] = pd.to_numeric(df[SPIELID_COL], errors='coerce')
         df = df.dropna(subset=[SPIELID_COL])
         df[SPIELID_COL] = df[SPIELID_COL].astype(int)
+        
+        # Status Spalte sicherstellen
+        if "Status" not in df.columns:
+            df["Status"] = "offen"
+            
         df = df.set_index(SPIELID_COL)
         return df
     except Exception as e:
         print(f"Fehler beim Laden der Ergebnisse: {e}")
         return pd.DataFrame(
-            columns=[SPIELID_COL, HEIM_TORE_COL, AUSWAERTS_TORE_COL]
+            columns=[SPIELID_COL, HEIM_TORE_COL, AUSWAERTS_TORE_COL, "Status"]
         ).set_index(SPIELID_COL)
 
 # =========================================================

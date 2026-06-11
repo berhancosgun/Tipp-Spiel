@@ -55,6 +55,7 @@ def get_worksheet(tab_name: str):
 # =========================================================
 # 📥 Spiele laden (weiterhin aus lokaler CSV)
 # =========================================================
+@st.cache_data(ttl=30)
 def load_games():
     """Lädt die Spieldaten aus der spiele.csv."""
     if not os.path.exists(SPIELE_DATEI):

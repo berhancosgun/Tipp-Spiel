@@ -1,4 +1,4 @@
-import streamlit as st
+﻿import streamlit as st
 import pandas as pd
 import os
 
@@ -11,7 +11,7 @@ from scripts.ranking_anzeige import (
     save_result
 )
 # =========================================================
-# 🔐 PASSWORT-SCHUTZ
+# ðŸ” PASSWORT-SCHUTZ
 # =========================================================
 USERS = {
     st.secrets["player_password"]: "user",   # Normaler Spieler
@@ -26,7 +26,7 @@ def check_password():
         st.markdown("""
         <div style='text-align:center; padding:60px 0 20px 0;'>
             <span style='color:#FFD700; font-size:36px; font-weight:bold;'>
-                🏆 Siemens-Tippspiel WM 2026 🏆
+                ðŸ† Siemens-Tippspiel WM 2026 ðŸ†
             </span><br>
             <span style='color:#c8c8e8; font-size:18px;'>
                 Bitte mit Passwort anmelden
@@ -36,8 +36,8 @@ def check_password():
 
         col1, col2, col3 = st.columns([1, 2, 1])
         with col2:
-            pw = st.text_input("🔐 Passwort:", type="password", key="pw_input")
-            login = st.button("Einloggen ▶", key="pw_btn")
+            pw = st.text_input("ðŸ” Passwort:", type="password", key="pw_input")
+            login = st.button("Einloggen â–¶", key="pw_btn")
 
             if login:
                 if pw in USERS:
@@ -45,7 +45,7 @@ def check_password():
                     st.session_state.is_admin = (USERS[pw] == "admin")
                     st.rerun()
                 else:
-                    st.error("❌ Falsches Passwort! Bitte versuche es erneut.")
+                    st.error("âŒ Falsches Passwort! Bitte versuche es erneut.")
         return False
     return True
 
@@ -61,22 +61,22 @@ def save_player_tips(player_name, tips_df, tips_dir=None):
     save_player_tips_to_sheet(player_name, tips_df)
 
 def player_file_exists(player_name, tips_dir=None):
-    """Prüft ob ein Spieler bereits Tipps in Google Sheets hat."""
+    """PrÃ¼ft ob ein Spieler bereits Tipps in Google Sheets hat."""
     from scripts.ranking_anzeige import load_player_tips
     tips = load_player_tips(player_name)
     return not tips.empty
 
 # =========================================================
-# 🎨 SEITEN-KONFIGURATION
+# ðŸŽ¨ SEITEN-KONFIGURATION
 # =========================================================
 st.set_page_config(
-    page_title="⚽ Siemens-Tippspiel",
-    page_icon="⚽",
+    page_title="âš½ Siemens-Tippspiel",
+    page_icon="âš½",
     layout="wide"
 )
 
 # =========================================================
-# 🎨 CUSTOM CSS (WM Farben)
+# ðŸŽ¨ CUSTOM CSS (WM Farben)
 # =========================================================
 st.markdown("""
 <style>
@@ -162,12 +162,12 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================
-# 🏆 HEADER  ← GEÄNDERT
+# ðŸ† HEADER  â† GEÃ„NDERT
 # =========================================================
 st.markdown("""
 <div class="header-banner">
     <span style="color:#FFD700; font-size:32px; font-weight:bold;">
-        🏆 &nbsp; Siemens-Tippspiel &nbsp; WM 2026 &nbsp; 🏆
+        ðŸ† &nbsp; Siemens-Tippspiel &nbsp; WM 2026 &nbsp; ðŸ†
     </span>
     <br>
     <span style="font-size:18px; color:#c8c8e8;">USA &nbsp;|&nbsp; Kanada &nbsp;|&nbsp; Mexiko</span>
@@ -175,7 +175,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================
-# 📦 SESSION STATE initialisieren
+# ðŸ“¦ SESSION STATE initialisieren
 # =========================================================
 if "player_name" not in st.session_state:
     st.session_state.player_name = ""
@@ -189,20 +189,20 @@ if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 
 # =========================================================
-# 📓 TABS
+# ðŸ““ TABS
 # =========================================================
 if st.session_state.is_admin:
     tab1, tab2, tab3, tab4 = st.tabs([
-        "🎯  Tippabgabe",
-        "🏅  Ranking",
-        "📊  Ergebnisse",
-        "🔧  Admin"
+        "ðŸŽ¯  Tippabgabe",
+        "ðŸ…  Ranking",
+        "ðŸ“Š  Ergebnisse",
+        "ðŸ”§  Admin"
     ])
 else:
     tab1, tab2, tab3 = st.tabs([
-        "🎯  Tippabgabe",
-        "🏅  Ranking",
-        "📊  Ergebnisse"
+        "ðŸŽ¯  Tippabgabe",
+        "ðŸ…  Ranking",
+        "ðŸ“Š  Ergebnisse"
     ])
 
 # =========================================================
@@ -211,7 +211,7 @@ else:
 with tab1:
 
     st.markdown('<div class="wm-card">', unsafe_allow_html=True)
-    st.markdown("### 👤 Anmeldung")
+    st.markdown("### ðŸ‘¤ Anmeldung")
 
     col_name, col_btn = st.columns([3, 1])
     with col_name:
@@ -223,13 +223,13 @@ with tab1:
     with col_btn:
         st.write("")
         st.write("")
-        login_clicked = st.button("Einloggen ▶", key="login_btn")
+        login_clicked = st.button("Einloggen â–¶", key="login_btn")
 
     if name_input:
         if player_file_exists(name_input):
-            st.success(f"✅ Willkommen zurück, **{name_input}**! Deine Tipps werden geladen.")
+            st.success(f"âœ… Willkommen zurÃ¼ck, **{name_input}**! Deine Tipps werden geladen.")
         else:
-            st.info(f"🆕 Neuer Spieler: **{name_input}** – ein neues Profil wird erstellt.")
+            st.info(f"ðŸ†• Neuer Spieler: **{name_input}** â€“ ein neues Profil wird erstellt.")
 
     if login_clicked and name_input.strip():
         st.session_state.player_name = name_input.strip()
@@ -251,24 +251,24 @@ with tab1:
         st.session_state.current_game_index  = 0
 
         if is_returning:
-            st.success(f"👋 Willkommen zurück, **{st.session_state.player_name}**!")
+            st.success(f"ðŸ‘‹ Willkommen zurÃ¼ck, **{st.session_state.player_name}**!")
         else:
-            st.success(f"🆕 Neues Profil erstellt für **{st.session_state.player_name}**. Viel Erfolg! 🍀")
+            st.success(f"ðŸ†• Neues Profil erstellt fÃ¼r **{st.session_state.player_name}**. Viel Erfolg! ðŸ€")
 
     elif login_clicked and not name_input.strip():
-        st.warning("⚠️ Bitte gib deinen Namen ein!")
+        st.warning("âš ï¸ Bitte gib deinen Namen ein!")
 
     st.markdown('</div>', unsafe_allow_html=True)
 
-    with st.expander("📋 Punkte-Regeln anzeigen", expanded=False):
+    with st.expander("ðŸ“‹ Punkte-Regeln anzeigen", expanded=False):
         st.markdown("""
         | Punkte | Bedingung |
         |--------|-----------|
-        | 🥇 **4 Punkte** | Exakter Tipp (z.B. Tipp 2:1 → Ergebnis 2:1) |
-        | ✅ **1 Punkt**  | Richtiger Spielausgang (Sieg / Unentschieden / Niederlage) |
-        | ➕ **2 Punkte** | Richtige Tordifferenz (z.B. Tipp 2:1 → Ergebnis 3:2) |
+        | ðŸ¥‡ **4 Punkte** | Exakter Tipp (z.B. Tipp 2:1 â†’ Ergebnis 2:1) |
+        | âœ… **1 Punkt**  | Richtiger Spielausgang (Sieg / Unentschieden / Niederlage) |
+        | âž• **2 Punkte** | Richtige Tordifferenz (z.B. Tipp 2:1 â†’ Ergebnis 3:2) |
 
-        💡 **Format:** Vorname_Nachname | Melde dich immer mit dem gleichen Namen an!
+        ðŸ’¡ **Format:** Vorname_Nachname | Melde dich immer mit dem gleichen Namen an!
         """)
 
     if st.session_state.logged_in and not st.session_state.all_games.empty:
@@ -288,19 +288,19 @@ with tab1:
             and pd.notna(results.loc[game_id, AUSWAERTS_TORE_COL])
         )
 
-        # Spiel-Anzeige  ← FLAGGEN ENTFERNT
+        # Spiel-Anzeige  â† FLAGGEN ENTFERNT
         if ergebnis_vorhanden:
-            h = int(results.loc[game_id, HEIM_TORE_COL])
-            a = int(results.loc[game_id, AUSWAERTS_TORE_COL])
+            h = safe_int(results.loc[game_id, HEIM_TORE_COL])
+            a = safe_int(results.loc[game_id, AUSWAERTS_TORE_COL])
             st.markdown(f"""
             <div class="game-display">
-                <div style="color:#c8c8e8; font-size:14px;">Spiel {game_id} &nbsp;|&nbsp; 🔒 Gesperrt</div>
+                <div style="color:#c8c8e8; font-size:14px;">Spiel {game_id} &nbsp;|&nbsp; ðŸ”’ Gesperrt</div>
                 <div style="font-size:36px; margin:10px 0;">
                     <span style="color:#FFFFFF; font-weight:bold;">{heim}</span>
                     &nbsp; <span style="color:#FFD700; font-size:40px;">{h} : {a}</span> &nbsp;
                     <span style="color:#FFFFFF; font-weight:bold;">{auswaerts}</span>
                 </div>
-                <div style="color:#e63946;">🔒 Dieses Spiel hat bereits ein Ergebnis – Tipp gesperrt!</div>
+                <div style="color:#e63946;">ðŸ”’ Dieses Spiel hat bereits ein Ergebnis â€“ Tipp gesperrt!</div>
             </div>
             """, unsafe_allow_html=True)
         else:
@@ -323,7 +323,7 @@ with tab1:
         default_auswaerts = int(current_auswaerts) if pd.notna(current_auswaerts) and current_auswaerts != "" else 0
 
         if not ergebnis_vorhanden:
-            st.markdown("#### 🎯 Dein Tipp:")
+            st.markdown("#### ðŸŽ¯ Dein Tipp:")
             col1, col_vs, col2 = st.columns([2, 1, 2])
             with col1:
                 st.markdown(f"<div style='text-align:center; color:#FFD700; font-weight:bold;'>{heim}</div>", unsafe_allow_html=True)
@@ -337,22 +337,22 @@ with tab1:
             with col2:
                 st.markdown(f"<div style='text-align:center; color:#FFD700; font-weight:bold;'>{auswaerts}</div>", unsafe_allow_html=True)
                 tipp_auswaerts = st.number_input(
-                    "Tore Auswärtsteam", min_value=0, max_value=30,
+                    "Tore AuswÃ¤rtsteam", min_value=0, max_value=30,
                     value=default_auswaerts, key=f"tipp_aus_{game_id}",
                     label_visibility="collapsed"
                 )
 
             col_save, col_finish = st.columns([1, 1])
             with col_save:
-                if st.button("💾 Tipp speichern", key="save_tip"):
+                if st.button("ðŸ’¾ Tipp speichern", key="save_tip"):
                     st.session_state.player_tips.loc[game_id, HEIMTEAM_COL    + '_Tipp'] = tipp_heim
                     st.session_state.player_tips.loc[game_id, AUSWAERTSTE_COL + '_Tipp'] = tipp_auswaerts
                     save_player_tips(st.session_state.player_name, st.session_state.player_tips)
-                    st.success(f"✅ Tipp gespeichert: **{tipp_heim} : {tipp_auswaerts}**")
+                    st.success(f"âœ… Tipp gespeichert: **{tipp_heim} : {tipp_auswaerts}**")
             with col_finish:
-                if st.button("✅ Alle Tipps speichern & beenden", key="finish_tips"):
+                if st.button("âœ… Alle Tipps speichern & beenden", key="finish_tips"):
                     save_player_tips(st.session_state.player_name, st.session_state.player_tips)
-                    st.success("🏆 Alle Tipps gespeichert! Viel Glück! 🍀")
+                    st.success("ðŸ† Alle Tipps gespeichert! Viel GlÃ¼ck! ðŸ€")
                     st.session_state.logged_in = False
                     st.rerun()
         else:
@@ -368,7 +368,7 @@ with tab1:
         st.markdown("---")
         col_prev, col_info, col_next = st.columns([1, 2, 1])
         with col_prev:
-            if st.button("◀ Vorheriges", disabled=(idx == 0), key="prev_btn"):
+            if st.button("â—€ Vorheriges", disabled=(idx == 0), key="prev_btn"):
                 st.session_state.current_game_index -= 1
                 st.rerun()
         with col_info:
@@ -377,14 +377,14 @@ with tab1:
                 unsafe_allow_html=True
             )
         with col_next:
-            if st.button("Nächstes ▶", disabled=(idx >= len(games) - 1), key="next_btn"):
+            if st.button("NÃ¤chstes â–¶", disabled=(idx >= len(games) - 1), key="next_btn"):
                 st.session_state.current_game_index += 1
                 st.rerun()
 
     elif not st.session_state.logged_in:
         st.markdown("""
         <div style='text-align:center; color:#c8c8e8; padding:40px;'>
-            👆 Gib deinen Namen ein und klicke auf <b style='color:#FFD700;'>Einloggen</b> um zu starten!
+            ðŸ‘† Gib deinen Namen ein und klicke auf <b style='color:#FFD700;'>Einloggen</b> um zu starten!
         </div>
         """, unsafe_allow_html=True)
 
@@ -392,15 +392,15 @@ with tab1:
 # TAB 2: RANKING
 # =========================================================
 with tab2:
-    st.markdown("### 🏅 Aktuelles Ranking")
+    st.markdown("### ðŸ… Aktuelles Ranking")
 
-    if st.button("🔄 Ranking aktualisieren", key="refresh_ranking"):
+    if st.button("ðŸ”„ Ranking aktualisieren", key="refresh_ranking"):
         st.rerun()
 
     try:
         ranking_df = get_all_player_rankings()
         if not ranking_df.empty:
-            medals = ["🥇", "🥈", "🥉"]
+            medals = ["ðŸ¥‡", "ðŸ¥ˆ", "ðŸ¥‰"]
             display_df = ranking_df.copy()
             display_df['Rang'] = [
                 medals[i] if i < 3 else str(row['Rang'])
@@ -412,13 +412,13 @@ with tab2:
                 use_container_width=True,
                 hide_index=True,
                 column_config={
-                    "Rang":    st.column_config.TextColumn("🏆 Rang",    width="small"),
-                    "Spieler": st.column_config.TextColumn("👤 Spieler", width="medium"),
-                    "Punkte":  st.column_config.NumberColumn("⭐ Punkte", width="small"),
+                    "Rang":    st.column_config.TextColumn("ðŸ† Rang",    width="small"),
+                    "Spieler": st.column_config.TextColumn("ðŸ‘¤ Spieler", width="medium"),
+                    "Punkte":  st.column_config.NumberColumn("â­ Punkte", width="small"),
                 }
             )
         else:
-            st.info("Noch kein Ranking verfügbar. Bitte warte bis Ergebnisse eingetragen sind.")
+            st.info("Noch kein Ranking verfÃ¼gbar. Bitte warte bis Ergebnisse eingetragen sind.")
     except Exception as e:
         st.error(f"Fehler beim Laden des Rankings: {e}")
 
@@ -426,9 +426,9 @@ with tab2:
 # TAB 3: ERGEBNISSE
 # =========================================================
 with tab3:
-    st.markdown("### 📊 Spielergebnisse Übersicht")
+    st.markdown("### ðŸ“Š Spielergebnisse Ãœbersicht")
 
-    if st.button("🔄 Aktualisieren", key="refresh_results"):
+    if st.button("ðŸ”„ Aktualisieren", key="refresh_results"):
         st.rerun()
 
     try:
@@ -450,8 +450,8 @@ with tab3:
                 if (game_id in results.index
                         and pd.notna(results.loc[game_id, HEIM_TORE_COL])
                         and pd.notna(results.loc[game_id, AUSWAERTS_TORE_COL])):
-                    h = int(results.loc[game_id, HEIM_TORE_COL])
-                    a = int(results.loc[game_id, AUSWAERTS_TORE_COL])
+                    h = safe_int(results.loc[game_id, HEIM_TORE_COL])
+                    a = safe_int(results.loc[game_id, AUSWAERTS_TORE_COL])
                     ergebnis = f"{h} : {a}"
                 else:
                     ergebnis = "- : -"
@@ -461,15 +461,15 @@ with tab3:
                     t_h = my_tips.loc[game_id, HEIMTEAM_COL    + '_Tipp']
                     t_a = my_tips.loc[game_id, AUSWAERTSTE_COL + '_Tipp']
                     if pd.notna(t_h) and pd.notna(t_a):
-                        mein_tipp = f"{int(t_h)} : {int(t_a)}"
+                        mein_tipp = f"{safe_int(t_h)} : {safe_int(t_a)}"
 
-                # ← FLAGGEN ENTFERNT
+                # â† FLAGGEN ENTFERNT
                 rows.append({
                     "#":              game_id,
-                    "🏠 Heimteam":    f"{heim}",
-                    "🎯 Mein Tipp":   mein_tipp,
-                    "📋 Ergebnis":    ergebnis,
-                    "✈️ Auswärtsteam": f"{auswaerts}",
+                    "ðŸ  Heimteam":    f"{heim}",
+                    "ðŸŽ¯ Mein Tipp":   mein_tipp,
+                    "ðŸ“‹ Ergebnis":    ergebnis,
+                    "âœˆï¸ AuswÃ¤rtsteam": f"{auswaerts}",
                 })
 
             df_display = pd.DataFrame(rows)
@@ -483,7 +483,7 @@ with tab3:
 # =========================================================
 if st.session_state.is_admin:
     with tab4:
-        st.markdown("### 🔧 Admin: Spielergebnisse eingeben")
+        st.markdown("### ðŸ”§ Admin: Spielergebnisse eingeben")
 
         try:
             games   = load_games()
@@ -504,14 +504,14 @@ if st.session_state.is_admin:
                     existing_auswaerts = 0
                     if game_id in results.index:
                         if pd.notna(results.loc[game_id, HEIM_TORE_COL]):
-                            existing_heim = int(results.loc[game_id, HEIM_TORE_COL])
+                            existing_heim = safe_int(results.loc[game_id, HEIM_TORE_COL])
                         if pd.notna(results.loc[game_id, AUSWAERTS_TORE_COL]):
-                            existing_auswaerts = int(results.loc[game_id, AUSWAERTS_TORE_COL])
+                            existing_auswaerts = safe_int(results.loc[game_id, AUSWAERTS_TORE_COL])
 
                     with st.container():
                         col_label, col_h, col_vs, col_a = st.columns([4, 1, 0.3, 1])
                         with col_label:
-                            # ← FLAGGEN ENTFERNT
+                            # â† FLAGGEN ENTFERNT
                             st.markdown(
                                 f"**Spiel {game_id}:** {heim} vs. {auswaerts}"
                             )
@@ -534,7 +534,7 @@ if st.session_state.is_admin:
                         admin_inputs[game_id] = (h_val, a_val)
 
                 st.markdown("---")
-                if st.button("💾 Alle Ergebnisse speichern", key="save_admin"):
+                if st.button("ðŸ’¾ Alle Ergebnisse speichern", key="save_admin"):
                     errors = []
                     for game_id, (h, a) in admin_inputs.items():
                         try:
@@ -546,8 +546,9 @@ if st.session_state.is_admin:
                         for err in errors:
                             st.error(err)
                     else:
-                        st.success("✅ Alle Ergebnisse erfolgreich gespeichert!")
+                        st.success("âœ… Alle Ergebnisse erfolgreich gespeichert!")
                         st.rerun()
 
         except Exception as e:
             st.error(f"Fehler im Admin-Tab: {e}")
+
